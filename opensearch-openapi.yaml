@@ -32059,27 +32059,52 @@ components:
           schema:
             type: object
             properties:
-              query_text:
-                type: string
-                description: The query text.
+              parameters:
+                type: object
+                additionalProperties:
+                  type: string
+                description: The parameters to pass to the model. Used by remote connector models to fill the connector request_body template variables from this map.
+              action_type:
+                $ref: '#/components/schemas/ml._common___PredictionActionType'
+                description: Overrides the action type derived from the request path. Used for remote connector models.
+              dlq:
+                type: object
+                additionalProperties:
+                  type: string
+                description: Dead-letter queue configuration for batch predict on remote connector models (since OpenSearch 2.19).
               text_docs:
                 type: array
                 items:
                   type: string
-                description: The text documents.
-            required:
-              - text_docs
+                description: The text documents. Used by local text-embedding and sparse-encoding models.
+              query_text:
+                type: string
+                description: The query text. Used by local text-similarity models.
+              question:
+                type: string
+                description: The question input. Used by local question-answering models.
+              context:
+                type: string
+                description: The context input. Used by local question-answering models.
     ml.predict_model_stream:
       content:
         application/json:
           schema:
             type: object
-            title: MLPredictModelStreamRequestBody
             properties:
               parameters:
-                $ref: '#/components/schemas/ml._common___Parameters'
-            required:
-              - parameters
+                type: object
+                additionalProperties:
+                  type: string
+                description: The parameters to pass to the remote connector model.
+              action_type:
+                $ref: '#/components/schemas/ml._common___PredictionActionType'
+                description: Overrides the action type derived from the request path.
+              dlq:
+                type: object
+                additionalProperties:
+                  type: string
+                description: Dead-letter queue configuration for batch predict on remote connector models.
     ml.register_agents:
       content:
         application/json:
@@ -49894,6 +49919,8 @@ components:
           $ref: '#/components/schemas/_common.query_dsl___ScriptScoreQuery'
         simple_query_string:
           $ref: '#/components/schemas/_common.query_dsl___SimpleQueryStringQuery'
+        sltr:
+          $ref: '#/components/schemas/_common.query_dsl___StoredLtrQuery'
         span_containing:
           $ref: '#/components/schemas/_common.query_dsl___SpanContainingQuery'
         field_masking_span:
@@ -50451,6 +50478,31 @@ components:
           required:
             - big
             - little
+    _common.query_dsl___StoredLtrQuery:
+      type: object
+      properties:
+        _name:
+          type: string
+        active_features:
+          type: array
+          items:
+            type: string
+        boost:
+          type: number
+          format: float
+        cache:
+          type: boolean
+        featureset:
+          type: string
+        model:
+          type: string
+        params:
+          type: object
+          additionalProperties: true
+        store:
+          type: string
+      required:
+        - params
     _common.query_dsl___TermQuery:
       oneOf:
         - title: value
@@ -63908,6 +63960,15 @@ components:
       enum:
         - conversational
         - data
+    ml._common___PredictionActionType:
+      type: string
+      description: The action type for model prediction.
+      enum:
+        - batch_predict
+        - batch_predict_status
+        - cancel_batch_predict
+        - execute
+        - predict
     ml._common___PredictionResult:
       type: object
       properties:
